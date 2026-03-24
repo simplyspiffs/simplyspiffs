@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SimplySpiffs — Appliance Incentive Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF9F7;
+    --white: #FFFFFF;
+    --slate-50: #F8FAFC;
+    --slate-100: #F1F5F9;
+    --slate-200: #E2E8F0;
+    --slate-300: #CBD5E1;
+    --slate-400: #94A3B8;
+    --slate-500: #64748B;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1E293B;
+    --accent: #1D6AE5;
+    --accent-dark: #1558C8;
+    --accent-light: #EEF4FF;
+    --accent-mid: #BFDBFE;
+    --success: #059669;
+    --success-light: #ECFDF5;
+    --warning: #D97706;
+    --warning-light: #FFFBEB;
+    --error: #DC2626;
+    --error-light: #FEF2F2;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--slate-800);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-200);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--slate-800);
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot { color: var(--accent); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background: var(--slate-100);
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate-600);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .nav-user:hover { background: var(--slate-200); }
+
+  .nav-avatar {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 12px; font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ── SIDEBAR ── */
+  aside {
+    background: var(--white);
+    border-right: 1px solid var(--slate-200);
+    padding: 24px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--slate-400);
+    padding: 16px 12px 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--slate-500);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .sidebar-item:hover { background: var(--slate-50); color: var(--slate-800); }
+  .sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+  .sidebar-icon { font-size: 15px; width: 22px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 20px;
+  }
+
+  .sidebar-badge.red { background: var(--error); }
+  .sidebar-badge.gray { background: var(--slate-300); color: var(--slate-600); }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--slate-100);
+  }
+
+  /* ── MAIN ── */
+  main {
+    padding: 36px 44px;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  .page { display: none; animation: fadeIn 0.25s ease; }
+  .page.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-header { margin-bottom: 28px; }
+
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--slate-800);
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .page-subtitle { color: var(--slate-400); font-size: 14px; }
+
+  /* ── STATS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--slate-200);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.red::before { background: var(--error); }
+  .stat-card.amber::before { background: var(--warning); }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--slate-400);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 34px;
+    color: var(--slate-800);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-sub { font-size: 12px; color: var(--slate-400); }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--slate-200);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--slate-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-title { font-size: 15px; font-weight: 600; color: var(--slate-800); }
+  .card-body { padding: 22px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 1px 4px rgba(29,106,229,0.25); }
+  .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(29,106,229,0.3); }
+  .btn-primary:disabled { background: var(--slate-300); box-shadow: none; transform: none; cursor: not-allowed; }
+
+  .btn-secondary { background: var(--white); color: var(--slate-600); border: 1px solid var(--slate-200); }
+  .btn-secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+  .btn-danger { background: var(--error-light); color: var(--error); border: 1px solid #FECACA; }
+  .btn-danger:hover { background: #FEE2E2; }
+
+  .btn-lg { padding: 12px 24px; font-size: 15px; border-radius: var(--radius); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ── UPLOAD ── */
+  .upload-zone {
+    border: 2px dashed var(--slate-200);
+    border-radius: var(--radius);
+    padding: 52px 32px;
+    text-align: center;
+    background: var(--slate-50);
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+
+  .upload-icon { font-size: 44px; margin-bottom: 14px; }
+  .upload-title { font-size: 16px; font-weight: 600; color: var(--slate-700); margin-bottom: 6px; }
+  .upload-sub { font-size: 13px; color: var(--slate-400); }
+
+  /* ── MANUFACTURER GRID ── */
+  .mfr-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .mfr-card {
+    border: 2px solid var(--slate-200);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--white);
+    position: relative;
+  }
+
+  .mfr-card:hover { border-color: var(--accent-mid); background: var(--accent-light); }
+  .mfr-card.selected { border-color: var(--accent); background: var(--accent-light); }
+  .mfr-card.disabled { opacity: 0.5; cursor: not-allowed; }
+  .mfr-card.disabled:hover { border-color: var(--slate-200); background: var(--white); }
+
+  .mfr-icon {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    background: var(--slate-100);
+    flex-shrink: 0;
+  }
+
+  .mfr-card.selected .mfr-icon { background: white; }
+
+  .mfr-name { font-size: 13px; font-weight: 600; color: var(--slate-700); }
+  .mfr-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 2px;
+    display: inline-block;
+  }
+
+  .tag-active { background: #D1FAE5; color: var(--success); }
+  .tag-soon { background: var(--slate-100); color: var(--slate-400); }
+
+  .mfr-check {
+    margin-left: auto;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--slate-200);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-size: 10px;
+  }
+
+  .mfr-card.selected .mfr-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* ── QUEUE ITEMS ── */
+  .queue-list { display: flex; flex-direction: column; gap: 7px; }
+
+  .queue-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+
+  .queue-item:hover { box-shadow: var(--shadow-sm); }
+
+  .queue-file-icon {
+    width: 36px; height: 36px;
+    background: var(--accent-light);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .queue-info { flex: 1; min-width: 0; }
+  .queue-name { font-size: 13px; font-weight: 500; color: var(--slate-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .queue-meta { font-size: 11px; color: var(--slate-400); margin-top: 1px; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .s-pending { background: var(--slate-100); color: var(--slate-500); }
+  .s-processing { background: var(--accent-light); color: var(--accent); }
+  .s-success { background: var(--success-light); color: var(--success); }
+  .s-error { background: var(--error-light); color: var(--error); }
+
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { margin: 12px 0; }
+  .progress-bar { height: 6px; background: var(--slate-100); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s ease; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--slate-400); margin-top: 6px; }
+
+  /* ── TABLE ── */
+  .table { width: 100%; border-collapse: collapse; }
+  .table th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-400); border-bottom: 1px solid var(--slate-200); background: var(--slate-50); }
+  .table td { padding: 13px 16px; font-size: 13px; color: var(--slate-600); border-bottom: 1px solid var(--slate-100); }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: var(--slate-50); }
+
+  /* ── FORM ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--slate-600); margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--slate-200); border-radius: var(--radius-sm); font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--slate-800); background: var(--white); transition: all 0.15s; outline: none; }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,106,229,0.1); }
+
+  /* ── ALERTS ── */
+  .alert { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; line-height: 1.5; }
+  .alert-info { background: var(--accent-light); color: #1D4ED8; border: 1px solid var(--accent-mid); }
+  .alert-success { background: var(--success-light); color: #065F46; border: 1px solid #A7F3D0; }
+  .alert-error { background: var(--error-light); color: #991B1B; border: 1px solid #FECACA; }
+  .alert-warning { background: var(--warning-light); color: #92400E; border: 1px solid #FDE68A; }
+
+  /* ── CREDENTIALS ── */
+  .cred-item { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border: 1px solid var(--slate-200); border-radius: var(--radius-sm); margin-bottom: 8px; background: var(--white); transition: box-shadow 0.15s; }
+  .cred-item:hover { box-shadow: var(--shadow-sm); }
+  .cred-logo { width: 38px; height: 38px; background: var(--slate-100); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .cred-info { flex: 1; }
+  .cred-name { font-size: 14px; font-weight: 500; color: var(--slate-800); }
+  .cred-user { font-size: 12px; color: var(--slate-400); margin-top: 1px; }
+  .connected { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--success); }
+  .not-connected { font-size: 12px; color: var(--slate-400); }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align: center; padding: 56px 32px; }
+  .empty-icon { font-size: 44px; margin-bottom: 14px; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--slate-600); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; color: var(--slate-400); }
+
+  /* ── LOGIN ── */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    background: var(--cream);
+  }
+
+  .login-left {
+    flex: 1;
+    background: var(--accent);
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: white;
+  }
+
+  .login-left-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    margin-bottom: 32px;
+    opacity: 0.95;
+  }
+
+  .login-left h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+
+  .login-left p {
+    font-size: 16px;
+    opacity: 0.8;
+    line-height: 1.7;
+    max-width: 400px;
+  }
+
+  .login-features {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .login-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .login-feature-icon {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .login-right {
+    width: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px;
+  }
+
+  .login-form { width: 100%; }
+
+  .login-form h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--slate-800);
+    margin-bottom: 6px;
+  }
+
+  .login-form p { font-size: 14px; color: var(--slate-400); margin-bottom: 32px; }
+
+  .divider { height: 1px; background: var(--slate-100); margin: 20px 0; }
+
+  /* ── SPINNER ── */
+  .spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; flex-shrink: 0; }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px; animation: fadeIn 0.2s; }
+  .modal { background: var(--white); border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 8px; }
+  .modal-sub { font-size: 14px; color: var(--slate-400); margin-bottom: 24px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .login-left { display: none; }
+    .login-right { width: 100%; }
+    .layout { grid-template-columns: 1fr; }
+    aside { display: none; }
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+    .mfr-grid { grid-template-columns: repeat(2,1fr); }
+    main { padding: 24px 16px; }
+    nav { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-left">
+    <div class="login-left-logo">SimplySpiffs</div>
+    <h2>Incentive claims, on autopilot.</h2>
+    <p>Upload your invoices, select your manufacturer, and let SimplySpiffs handle the rest. No more manual data entry.</p>
+    <div class="login-features">
+      <div class="login-feature">
+        <div class="login-feature-icon">📄</div>
+        Upload up to 50 invoices at once
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">🤖</div>
+        Automated submission to manufacturer portals
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">⚠️</div>
+        Error tracking and manual review dashboard
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">💳</div>
+        Only $1 per successful submission
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-form">
+      <h3>Welcome back</h3>
+      <p>Sign in to your SimplySpiffs account</p>
+
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="loginPassword" placeholder="••••••••">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:-8px; margin-bottom:20px;">
+        <a href="#" style="font-size:13px; color:var(--accent); text-decoration:none;">Forgot password?</a>
+      </div>
+
+      <button class="btn btn-primary btn-lg" style="width:100%; justify-content:center;" onclick="doLogin()" id="loginBtn">
+        Sign in
+      </button>
+
+      <div class="divider"></div>
+      <p style="text-align:center; color:var(--slate-400); font-size:13px; margin:0;">
+        Need an account? <a href="#" style="color:var(--accent); text-decoration:none;">Contact support</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="mainApp" style="display:none;">
+  <nav>
+    <div class="logo">SimplySpiffs<span class="logo-dot">.</span></div>
+    <div class="nav-right">
+      <div class="nav-user" onclick="showPage('settings')">
+        <div class="nav-avatar" id="navAvatar">DK</div>
+        <span id="navName">David Kotila</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside>
+      <div class="sidebar-section">Main</div>
+      <div class="sidebar-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+        <span class="sidebar-icon">📊</span> Dashboard
+      </div>
+      <div class="sidebar-item" id="nav-submit" onclick="showPage('submit')">
+        <span class="sidebar-icon">📤</span> Submit Claims
+      </div>
+
+      <div class="sidebar-section">Activity</div>
+      <div class="sidebar-item" id="nav-queue" onclick="showPage('queue')">
+        <span class="sidebar-icon">⏳</span> Queue
+        <span class="sidebar-badge gray" id="queueBadge">0</span>
+      </div>
+      <div class="sidebar-item" id="nav-history" onclick="showPage('history')">
+        <span class="sidebar-icon">✅</span> Completed
+      </div>
+      <div class="sidebar-item" id="nav-errors" onclick="showPage('errors')">
+        <span class="sidebar-icon">⚠️</span> Errors
+        <span class="sidebar-badge red" id="errorBadge" style="display:none">0</span>
+      </div>
+
+      <div class="sidebar-section">Account</div>
+      <div class="sidebar-item" id="nav-settings" onclick="showPage('settings')">
+        <span class="sidebar-icon">⚙️</span> Settings
+      </div>
+      <div class="sidebar-item" id="nav-billing" onclick="showPage('billing')">
+        <span class="sidebar-icon">💳</span> Billing
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-item" onclick="doLogout()" style="color:var(--error);">
+          <span class="sidebar-icon">🚪</span> Sign out
+        </div>
+      </div>
+    </aside>
+
+    <main>
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <div class="page-title">Dashboard</div>
+          <div class="page-subtitle" id="dashGreeting">Good morning — here's your submission overview.</div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card blue">
+            <div class="stat-label">Total Submitted</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-sub">All time</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Successful</div>
+            <div class="stat-value" id="stat-success">0</div>
+            <div class="stat-sub">Completed claims</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Errors</div>
+            <div class="stat-value" id="stat-errors">0</div>
+            <div class="stat-sub">Need review</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">In Queue</div>
+            <div class="stat-value" id="stat-queue">0</div>
+            <div class="stat-sub">Pending</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Recent Submissions</div>
+              <button class="btn btn-secondary btn-sm" onclick="showPage('history')">View all</button>
+            </div>
+            <div id="recentList">
+              <div class="empty">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">No submissions yet</div>
+                <div class="empty-sub">Upload invoices to get started</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">Quick Actions</div></div>
+            <div class="card-body" style="display:flex; flex-direction:column; gap:10px;">
+              <button class="btn btn-primary" style="justify-content:center;" onclick="showPage('submit')">📤 Submit New Batch</button>
+              <button class="btn btn-secondary" style="justify-content:center;" onclick="showPage('errors')">⚠️ Review Errors</button>
+              <button class="btn btn-secondary" style="justify-content:center;" onclick="showPage('settings')">⚙️ Manage Credentials</button>
+              <button class="btn btn-secondary" style="justify-content:center;" onclick="showPage('billing')">💳 View Billing</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div id="page-submit" class="page">
+        <div class="page-header">
+          <div class="page-title">Submit Claims</div>
+          <div class="page-subtitle">Select a manufacturer, upload your invoices, and run.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Step 1 — Select Manufacturer</div>
+          </div>
+          <div class="card-body">
+            <div class="mfr-grid">
+              <div class="mfr-card selected" onclick="selectMfr(this,'Sub-Zero Group')">
+                <div class="mfr-icon">❄️</div>
+                <div><div class="mfr-name">Sub-Zero Group</div><span class="mfr-tag tag-active">Active</span></div>
+                <div class="mfr-check">✓</div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Bosch / Thermador')">
+                <div class="mfr-icon">🔧</div>
+                <div><div class="mfr-name">Bosch / Thermador</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Samsung Appliances')">
+                <div class="mfr-icon">📱</div>
+                <div><div class="mfr-name">Samsung Appliances</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('LG')">
+                <div class="mfr-icon">🏠</div>
+                <div><div class="mfr-name">LG</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Miele')">
+                <div class="mfr-icon">✨</div>
+                <div><div class="mfr-name">Miele</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Speed Queen')">
+                <div class="mfr-icon">🌀</div>
+                <div><div class="mfr-name">Speed Queen</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('R&B Distributing')">
+                <div class="mfr-icon">📦</div>
+                <div><div class="mfr-name">R&B Distributing</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Milestone')">
+                <div class="mfr-icon">🏆</div>
+                <div><div class="mfr-name">Milestone Dist.</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+              <div class="mfr-card disabled" onclick="comingSoon('Simmons')">
+                <div class="mfr-icon">🛏️</div>
+                <div><div class="mfr-name">Simmons</div><span class="mfr-tag tag-soon">Coming soon</span></div>
+                <div class="mfr-check"></div>
+              </div>
+            </div>
+            <div id="mfrAlert" class="alert alert-info">
+              ℹ️ <strong>Sub-Zero Group</strong> selected — ready to submit.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Step 2 — Upload Invoices</div>
+            <span style="font-size:12px; color:var(--slate-400);">Max 50 PDFs per batch</span>
+          </div>
+          <div class="card-body">
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" multiple accept=".pdf" id="fileInput" onchange="handleFiles(this.files)">
+              <div class="upload-icon">📄</div>
+              <div class="upload-title">Drop your invoice PDFs here</div>
+              <div class="upload-sub">or click to browse · PDF files only · up to 50 per batch</div>
+            </div>
+            <div id="fileQueue" class="queue-list" style="margin-top:14px;"></div>
+            <div id="submitActions" style="display:none; margin-top:18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-lg" onclick="runSubmissions()" id="runBtn">🚀 Run All Submissions</button>
+              <button class="btn btn-secondary" onclick="clearQueue()">Clear</button>
+              <span id="queueCount" style="font-size:13px; color:var(--slate-400);"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="progressCard" style="display:none;">
+          <div class="card-header">
+            <div class="card-title">Step 3 — Processing</div>
+            <span id="progressLabel" style="font-size:13px; color:var(--slate-400);">0 / 0</span>
+          </div>
+          <div class="card-body">
+            <div class="progress-wrap">
+              <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+              <div class="progress-label"><span id="progressPct">0%</span><span id="progressEta"></span></div>
+            </div>
+            <div id="processingList" class="queue-list" style="margin-top:14px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUEUE -->
+      <div id="page-queue" class="page">
+        <div class="page-header">
+          <div class="page-title">Submission Queue</div>
+          <div class="page-subtitle">Invoices waiting to be processed.</div>
+        </div>
+        <div class="card">
+          <div id="queueContent">
+            <div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Queue is empty</div><div class="empty-sub">Upload invoices on the Submit page to fill the queue</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="page-history" class="page">
+        <div class="page-header">
+          <div class="page-title">Completed Submissions</div>
+          <div class="page-subtitle">All successfully submitted claims.</div>
+        </div>
+        <div class="card">
+          <div id="historyContent">
+            <div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No completed submissions yet</div><div class="empty-sub">Successful claims will appear here</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ERRORS -->
+      <div id="page-errors" class="page">
+        <div class="page-header">
+          <div class="page-title">Errors & Review</div>
+          <div class="page-subtitle">Invoices that need manual attention.</div>
+        </div>
+        <div class="card" id="errorsCard">
+          <div id="errorsContent">
+            <div class="empty"><div class="empty-icon">✨</div><div class="empty-title">No errors — great work!</div><div class="empty-sub">Failed submissions will appear here for manual review</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="page-header">
+          <div class="page-title">Settings</div>
+          <div class="page-subtitle">Manage your profile and manufacturer credentials.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Your Profile</div></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group" style="margin:0"><label class="form-label">Full Name</label><input type="text" class="form-input" value="David Kotila"></div>
+              <div class="form-group" style="margin:0"><label class="form-label">Email</label><input type="email" class="form-input" value="simplyspiffssupport@gmail.com"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin:0"><label class="form-label">Company</label><input type="text" class="form-input" value="Spencer's TV & Appliance"></div>
+              <div class="form-group" style="margin:0"><label class="form-label">Phone</label><input type="text" class="form-input" value="(480) 991-7200"></div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-top:4px;">Save Changes</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Manufacturer Credentials</div>
+            <button class="btn btn-secondary btn-sm" onclick="showCredModal()">+ Add Credential</button>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info" style="margin-bottom:18px;">
+              🔒 Your credentials are encrypted. SimplySpiffs uses them only to submit claims on your behalf.
+            </div>
+            <div class="cred-item">
+              <div class="cred-logo">❄️</div>
+              <div class="cred-info"><div class="cred-name">Sub-Zero Group</div><div class="cred-user">david.kotila@gmail.com</div></div>
+              <div class="connected">● Connected</div>
+              <button class="btn btn-secondary btn-sm" style="margin-left:12px;">Edit</button>
+            </div>
+            <div class="cred-item">
+              <div class="cred-logo">🔧</div>
+              <div class="cred-info"><div class="cred-name">Bosch / Thermador</div><div class="cred-user">Not connected</div></div>
+              <div class="not-connected">—</div>
+              <button class="btn btn-primary btn-sm" style="margin-left:12px;" onclick="showCredModal()">Connect</button>
+            </div>
+            <div class="cred-item">
+              <div class="cred-logo">📱</div>
+              <div class="cred-info"><div class="cred-name">Samsung Appliances</div><div class="cred-user">Not connected</div></div>
+              <div class="not-connected">—</div>
+              <button class="btn btn-primary btn-sm" style="margin-left:12px;" onclick="showCredModal()">Connect</button>
+            </div>
+            <div class="cred-item">
+              <div class="cred-logo">🏠</div>
+              <div class="cred-info"><div class="cred-name">LG</div><div class="cred-user">Not connected</div></div>
+              <div class="not-connected">—</div>
+              <button class="btn btn-primary btn-sm" style="margin-left:12px;" onclick="showCredModal()">Connect</button>
+            </div>
+            <div class="cred-item">
+              <div class="cred-logo">✨</div>
+              <div class="cred-info"><div class="cred-name">Miele</div><div class="cred-user">Not connected</div></div>
+              <div class="not-connected">—</div>
+              <button class="btn btn-primary btn-sm" style="margin-left:12px;" onclick="showCredModal()">Connect</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BILLING -->
+      <div id="page-billing" class="page">
+        <div class="page-header">
+          <div class="page-title">Billing</div>
+          <div class="page-subtitle">Track your usage and manage payment.</div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card blue">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value" id="bill-month">$0</div>
+            <div class="stat-sub">0 submissions</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Rate</div>
+            <div class="stat-value">$1</div>
+            <div class="stat-sub">Per successful claim</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">All Time</div>
+            <div class="stat-value" id="bill-total">$0</div>
+            <div class="stat-sub">Total spent</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Payment Method</div></div>
+          <div class="card-body">
+            <div class="alert alert-warning">⚠️ No payment method on file. Add one to start submitting claims.</div>
+            <button class="btn btn-primary">+ Add Payment Method</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Transaction History</div></div>
+          <div class="empty" style="padding:40px;">
+            <div class="empty-icon">💳</div>
+            <div class="empty-title">No transactions yet</div>
+            <div class="empty-sub">Your billing history will appear here</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- CREDENTIAL MODAL -->
+<div id="credModal" style="display:none;" class="modal-overlay" onclick="if(event.target===this)closeCredModal()">
+  <div class="modal">
+    <div class="modal-title">Add Manufacturer Credential</div>
+    <div class="modal-sub">Enter your login details for this manufacturer's portal.</div>
+    <div class="form-group">
+      <label class="form-label">Manufacturer</label>
+      <select class="form-input">
+        <option>Bosch / Thermador</option>
+        <option>Samsung Appliances</option>
+        <option>Samsung Electronics</option>
+        <option>LG</option>
+        <option>Miele</option>
+        <option>Speed Queen</option>
+        <option>R&B Distributing</option>
+        <option>Milestone Distributing</option>
+        <option>Danby</option>
+        <option>Simmons</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username / Email</label>
+      <input type="email" class="form-input" placeholder="your@email.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-input" placeholder="••••••••">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeCredModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="closeCredModal()">Save Credential</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let uploadedFiles = [];
+  let selectedMfr = 'Sub-Zero Group';
+  let submissions = [];
+  let errors = [];
+
+  // ── GREETING ──
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('dashGreeting').textContent = `${greet} — here's your submission overview.`;
+
+  // ── AUTH ──
+  function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    if (!email || !pass) { showAlert('Please enter your email and password.'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      const initials = email.split('@')[0].substring(0,2).toUpperCase();
+      document.getElementById('navAvatar').textContent = initials;
+      btn.innerHTML = 'Sign in';
+      btn.disabled = false;
+    }, 800);
+  }
+
+  function doLogout() {
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') doLogin();
+  });
+
+  // ── NAV ──
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    const page = document.getElementById('page-' + name);
+    if (page) page.classList.add('active');
+    const nav = document.getElementById('nav-' + name);
+    if (nav) nav.classList.add('active');
+  }
+
+  // ── MANUFACTURER ──
+  function selectMfr(el, name) {
+    if (el.classList.contains('disabled')) return;
+    document.querySelectorAll('.mfr-card:not(.disabled)').forEach(c => {
+      c.classList.remove('selected');
+      c.querySelector('.mfr-check').textContent = '';
+    });
+    el.classList.add('selected');
+    el.querySelector('.mfr-check').textContent = '✓';
+    selectedMfr = name;
+    document.getElementById('mfrAlert').className = 'alert alert-info';
+    document.getElementById('mfrAlert').innerHTML = `ℹ️ <strong>${name}</strong> selected — ready to submit.`;
+  }
+
+  function comingSoon(name) {
+    document.getElementById('mfrAlert').className = 'alert alert-warning';
+    document.getElementById('mfrAlert').innerHTML = `⚠️ <strong>${name}</strong> is coming soon. Sub-Zero Group is currently the only active manufacturer.`;
+  }
+
+  // ── FILE UPLOAD ──
+  function handleFiles(files) {
+    const pdfs = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    if (uploadedFiles.length + pdfs.length > 50) {
+      alert('Maximum 50 invoices per batch. Please remove some files first.');
+      return;
+    }
+    pdfs.forEach(f => {
+      if (!uploadedFiles.find(e => e.name === f.name)) uploadedFiles.push(f);
+    });
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const container = document.getElementById('fileQueue');
+    const actions = document.getElementById('submitActions');
+
+    if (uploadedFiles.length === 0) {
+      container.innerHTML = '';
+      actions.style.display = 'none';
+      updateStats();
+      return;
+    }
+
+    actions.style.display = 'flex';
+    document.getElementById('queueCount').textContent = `${uploadedFiles.length} invoice${uploadedFiles.length !== 1 ? 's' : ''} ready`;
+
+    container.innerHTML = uploadedFiles.map((f, i) => `
+      <div class="queue-item" id="qi-${i}">
+        <div class="queue-file-icon">📄</div>
+        <div class="queue-info">
+          <div class="queue-name">${f.name}</div>
+          <div class="queue-meta">${(f.size/1024).toFixed(1)} KB &nbsp;·&nbsp; ${selectedMfr}</div>
+        </div>
+        <span class="status-pill s-pending"><span class="status-dot"></span>Pending</span>
+        <button class="btn btn-secondary btn-sm" onclick="removeFile(${i})" style="margin-left:8px; padding:5px 10px;">✕</button>
+      </div>
+    `).join('');
+
+    updateStats();
+  }
+
+  function removeFile(i) {
+    uploadedFiles.splice(i, 1);
+    renderQueue();
+    document.getElementById('fileInput').value = '';
+  }
+
+  function clearQueue() {
+    uploadedFiles = [];
+    renderQueue();
+    document.getElementById('fileInput').value = '';
+  }
+
+  // ── DRAG DROP ──
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+
+  // ── RUN SUBMISSIONS ──
+  function runSubmissions() {
+    if (!uploadedFiles.length) { alert('Please upload at least one invoice.'); return; }
+    if (selectedMfr !== 'Sub-Zero Group') { alert('This manufacturer is not yet active.'); return; }
+
+    const btn = document.getElementById('runBtn');
+    btn.innerHTML = '<span class="spinner"></span> Processing...';
+    btn.disabled = true;
+
+    const card = document.getElementById('progressCard');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const total = uploadedFiles.length;
+    let done = 0;
+
+    document.getElementById('processingList').innerHTML = uploadedFiles.map((f, i) => `
+      <div class="queue-item" id="pr-${i}">
+        <div class="queue-file-icon">📄</div>
+        <div class="queue-info">
+          <div class="queue-name">${f.name}</div>
+          <div class="queue-meta">${selectedMfr}</div>
+        </div>
+        <span class="status-pill s-pending" id="pr-s-${i}"><span class="status-dot"></span>Waiting</span>
+      </div>
+    `).join('');
+
+    function next(i) {
+      if (i >= total) {
+        btn.innerHTML = '🚀 Run All Submissions';
+        btn.disabled = false;
+        updateStats();
+        renderHistory();
+        renderErrors();
+        renderDashboard();
+        return;
+      }
+
+      const f = uploadedFiles[i];
+      const statusEl = document.getElementById(`pr-s-${i}`);
+      statusEl.className = 'status-pill s-processing pulse';
+      statusEl.innerHTML = '<span class="status-dot"></span>Submitting';
+
+      const pct = Math.round(((i + 1) / total) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressLabel').textContent = `${i + 1} / ${total}`;
+
+      setTimeout(() => {
+        const ok = Math.random() > 0.12;
+        if (ok) {
+          statusEl.className = 'status-pill s-success';
+          statusEl.innerHTML = '<span class="status-dot"></span>Submitted ✓';
+          submissions.push({ name: f.name, mfr: selectedMfr, date: new Date().toLocaleDateString('en-US'), time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'}) });
+        } else {
+          statusEl.className = 'status-pill s-error';
+          statusEl.innerHTML = '<span class="status-dot"></span>Error';
+          errors.push({ name: f.name, mfr: selectedMfr, date: new Date().toLocaleDateString('en-US'), reason: 'Model not found in portal dropdown' });
+        }
+        done++;
+        next(i + 1);
+      }, 1200 + Math.random() * 800);
+    }
+
+    next(0);
+  }
+
+  // ── RENDER HISTORY ──
+  function renderHistory() {
+    const el = document.getElementById('historyContent');
+    if (!submissions.length) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No completed submissions yet</div></div>`;
+      return;
+    }
+    el.innerHTML = `<table class="table">
+      <thead><tr><th>Invoice</th><th>Manufacturer</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+      <tbody>${[...submissions].reverse().map(s => `
+        <tr>
+          <td>📄 ${s.name}</td><td>${s.mfr}</td><td>${s.date}</td><td>${s.time}</td>
+          <td><span class="status-pill s-success"><span class="status-dot"></span>Submitted</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  // ── RENDER ERRORS ──
+  function renderErrors() {
+    const el = document.getElementById('errorsContent');
+    const badge = document.getElementById('errorBadge');
+    badge.textContent = errors.length;
+    badge.style.display = errors.length ? 'inline' : 'none';
+
+    if (!errors.length) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">✨</div><div class="empty-title">No errors — great work!</div><div class="empty-sub">Failed submissions will appear here for manual review</div></div>`;
+      return;
+    }
+    el.innerHTML = `<table class="table">
+      <thead><tr><th>Invoice</th><th>Manufacturer</th><th>Date</th><th>Error Reason</th><th>Action</th></tr></thead>
+      <tbody>${errors.map((e,i) => `
+        <tr>
+          <td>📄 ${e.name}</td><td>${e.mfr}</td><td>${e.date}</td>
+          <td><span style="color:var(--error);font-size:12px;">${e.reason}</span></td>
+          <td><button class="btn btn-secondary btn-sm">Review</button></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  // ── RENDER DASHBOARD ──
+  function renderDashboard() {
+    const el = document.getElementById('recentList');
+    if (!submissions.length) return;
+    el.innerHTML = `<table class="table">
+      <thead><tr><th>Invoice</th><th>Manufacturer</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>${[...submissions].reverse().slice(0,5).map(s => `
+        <tr>
+          <td>📄 ${s.name}</td><td>${s.mfr}</td><td>${s.date}</td>
+          <td><span class="status-pill s-success"><span class="status-dot"></span>Submitted</span></td>
+        </tr>`).join('')}
+      </tbody></table>`;
+  }
+
+  // ── STATS ──
+  function updateStats() {
+    document.getElementById('stat-total').textContent = submissions.length + errors.length;
+    document.getElementById('stat-success').textContent = submissions.length;
+    document.getElementById('stat-errors').textContent = errors.length;
+    document.getElementById('stat-queue').textContent = uploadedFiles.length;
+    document.getElementById('queueBadge').textContent = uploadedFiles.length;
+    document.getElementById('bill-month').textContent = `$${submissions.length}`;
+    document.getElementById('bill-total').textContent = `$${submissions.length}`;
+  }
+
+  // ── CREDENTIAL MODAL ──
+  function showCredModal() { document.getElementById('credModal').style.display = 'flex'; }
+  function closeCredModal() { document.getElementById('credModal').style.display = 'none'; }
+
+  // ── ALERT ──
+  function showAlert(msg) {
+    alert(msg);
+  }
+</script>
+</body>
+</html>
