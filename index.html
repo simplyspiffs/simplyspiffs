@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tweetnacl-sealedbox-js@1.2.0/sealedbox.web.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blakejs@1.2.1/index.js"></script>
 <style>
   :root{
     --ink:#1a1c1a; --paper:#f6f4ee; --card:#fffdf8; --line:#d8d3c4;
@@ -167,8 +167,24 @@ const MANUFACTURERS = [
 ];
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const PUBKEY = nacl.util.decodeBase64(PUBLIC_KEY_B64);
+
+// Build a libsodium-compatible sealed box from tweetnacl primitives:
+//   ephemeral_pk || box(msg, recipient_pk, ephemeral_sk,
+//                       nonce = blake2b(ephemeral_pk || recipient_pk))
+// The Python worker's SealedBox.decrypt() opens exactly this format.
 function sealPassword(plain){
-  const sealed = nacl.sealedbox.seal(nacl.util.decodeUTF8(plain), PUBKEY);
+  const eph = nacl.box.keyPair();                  // ephemeral key pair
+  const msg = nacl.util.decodeUTF8(plain);
+  // nonce = Blake2b-24(ephemeral_pk || recipient_pk)
+  const nonceInput = new Uint8Array(eph.publicKey.length + PUBKEY.length);
+  nonceInput.set(eph.publicKey, 0);
+  nonceInput.set(PUBKEY, eph.publicKey.length);
+  const nonce = blakejs.blake2b(nonceInput, null, nacl.box.nonceLength); // 24 bytes
+  const boxed = nacl.box(msg, nonce, PUBKEY, eph.secretKey);
+  // sealed = ephemeral_pk || boxed
+  const sealed = new Uint8Array(eph.publicKey.length + boxed.length);
+  sealed.set(eph.publicKey, 0);
+  sealed.set(boxed, eph.publicKey.length);
   return nacl.util.encodeBase64(sealed);
 }
 const $ = id => document.getElementById(id);
